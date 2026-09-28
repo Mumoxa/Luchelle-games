@@ -94,6 +94,19 @@ export default function App() {
     setPkey((k) => k + 1);
   }, []);
 
+  const skipPuzzle = useCallback(() => {
+    if (screenRef.current !== "play" || statusRef.current !== "run") return;
+    clearTimers();
+    doneRef.current = true;
+    setCombo(0);
+    setFlash(null);
+    setWrongNote(null);
+    sfx.click();
+    setPuzzle((prev) => makePuzzle(modeRef.current, Math.min(levelRef.current - 1, 3), prev?.type));
+    setPkey((k) => k + 1);
+    window.setTimeout(() => { doneRef.current = false; }, 80);
+  }, [clearTimers]);
+
   const succeed = useCallback((el?: HTMLElement, bonus = 0) => {
     if (doneRef.current) return;
     doneRef.current = true;
@@ -196,10 +209,19 @@ export default function App() {
           <div className="relative z-10 flex h-full flex-col items-center gap-2 px-3 md:gap-3" style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))", paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
             <Hud score={score} level={level} lives={lives} maxLives={maxLives} combo={combo} muted={muted} onPause={togglePause} onMute={toggleMute} />
             <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-y-auto">
-              <div ref={cardRef} key={pkey} className={`card anim-pop-in relative w-full max-w-[540px] px-4 py-3.5 md:px-6 md:py-5 ${flash === "ok" ? "anim-card-good" : ""} ${flash === "bad" ? "anim-card-bad" : ""}`}>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="rounded-full border-2 border-ink px-3 py-0.5 font-display text-xs font-bold text-white md:text-sm" style={{ background: subjectColor }}>{puzzle.subject}</span>
-                  <span className="font-display text-xs font-semibold text-ink/40 md:text-sm">Puzzle {solved + 1}</span>
+              <div ref={cardRef} key={pkey} className={`card anim-pop-in relative w-full max-w-[540px] px-3 py-3 sm:px-4 md:px-6 md:py-5 ${flash === "ok" ? "anim-card-good" : ""} ${flash === "bad" ? "anim-card-bad" : ""}`}>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="shrink-0 rounded-full border-2 border-ink px-2.5 py-1 font-display text-xs font-bold text-white md:px-3 md:text-sm" style={{ background: subjectColor }}>{puzzle.subject}</span>
+                  <span className="min-w-0 flex-1 text-right font-display text-[11px] font-semibold text-ink/45 sm:text-xs md:text-sm">Puzzle {solved + 1}</span>
+                  <button
+                    type="button"
+                    onPointerDown={(e) => { e.stopPropagation(); skipPuzzle(); }}
+                    className="btn btn-cream h-10 shrink-0 px-3 text-xs sm:h-11 sm:text-sm"
+                    aria-label="Skip this puzzle"
+                    title="Skip this puzzle"
+                  >
+                    Skip ›
+                  </button>
                 </div>
                 {puzzle.type === "pop" && <PopPuzzle p={puzzle} onSucceed={succeed} onFail={fail} registerKey={registerKey} />}
                 {puzzle.type === "choice" && <ChoicePuzzle p={puzzle} onSucceed={succeed} onFail={fail} registerKey={registerKey} />}
@@ -211,7 +233,7 @@ export default function App() {
               </div>
             </div>
             <p className="hidden text-xs font-bold text-ink/70 md:block">1–3 answer • Arrows / WASD move • P pause • M mute</p>
-            <p className="text-[11px] font-bold text-ink/60 md:hidden">Tap to play • Swipe in mazes</p>
+            <p className="text-[11px] font-bold text-ink/60 md:hidden">Tap to play • Swipe in mazes • Skip if stuck</p>
           </div>
         )}
         {screen === "play" && status === "paused" && <PauseOverlay onResume={togglePause} onRestart={() => startRun(mode)} onHome={goHome} muted={muted} onMute={toggleMute} />}
