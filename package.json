@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "test:bulk": "node --experimental-strip-types --test src/puzzles/bulk.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {
