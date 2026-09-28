@@ -32,7 +32,7 @@ Little Learner remains a separate simplified mode that reuses the puzzle engine 
 
 ## Campaign scale
 
-The Grade 3 campaign contains **12 worlds × 8 missions**. A normal mission contains 5–7 interactions, typically six. This produces about 576 configured first-run interactions before retries, bonus challenges and replay.
+The Grade 3 campaign contains **12 worlds × 8 missions**. Each world has **7 regular missions plus 1 Boss mission**. A normal mission contains 5–7 interactions, typically six. This produces about 576 configured first-run interactions before retries, bonus challenges and replay.
 
 | World | Theme | Main skills |
 |---|---|---|
@@ -49,11 +49,11 @@ The Grade 3 campaign contains **12 worlds × 8 missions**. A normal mission cont
 | 11 | Leopard Logic | Sudoku/Latin logic, deduction, sequences |
 | 12 | Safari Championship | mixed Grade 3 mastery |
 
-Each world ends with a mixed Boss Challenge. Previously completed worlds remain replayable.
+Previously completed worlds remain replayable.
 
-## Mission, stars and progression
+## Mission, boss, stars and progression
 
-A mission should last about 3–7 minutes and normally contains four standard curriculum puzzles, one alternate-mechanic puzzle and one finale challenge.
+A regular mission should last about 3–7 minutes and normally contains four standard curriculum puzzles, one alternate-mechanic puzzle and one finale challenge.
 
 Each mission offers up to three stars:
 
@@ -61,7 +61,14 @@ Each mission offers up to three stars:
 - **Accuracy** — meet the initial 80% accuracy target.
 - **Mastery** — complete a bonus condition such as no hints or a streak.
 
-Stars reward replay but do not permanently block progress. A world unlocks when at least six of its eight missions are completed, including the Boss Challenge.
+Stars reward replay but do not permanently block progress.
+
+Progression rules are explicit:
+
+- Regular missions 1–7 are available within the current unlocked world.
+- The Boss mission unlocks after any **5 of the 7 regular missions** are completed.
+- The next world unlocks after the Boss is completed **and at least 6 of the 8 missions in the current world are complete in total**.
+- Remaining missions can always be revisited later for stars and mastery.
 
 ## Failure, Hint and Skip
 
@@ -193,6 +200,22 @@ Add focused components such as `WorldMap`, `MissionSelect`, `MissionSummary`, `P
 ### Audio/read-aloud
 
 Retain lightweight Web Audio effects. Use browser speech synthesis for optional read-aloud where supported and degrade gracefully when not available.
+
+### Data flow
+
+The normal campaign flow is:
+
+1. Home/World Map selects a mission.
+2. `MissionRunner` reads the mission definition and chooses the next skill/tier/puzzle family.
+3. The puzzle registry calls the matching seeded generator.
+4. The validator accepts the puzzle or regenerates/falls back before anything is shown.
+5. `PuzzleShell` renders the puzzle component and common Hint/Skip/status controls.
+6. The puzzle reports a standard result (`correct`, `wrong`, `hint`, or `skip`) upward.
+7. `MissionRunner` updates hearts, streak, mission state and score.
+8. Mastery/progression modules update the learner profile through the storage layer.
+9. The next challenge or mission summary is selected from the updated state.
+
+Puzzle components do not directly unlock worlds, write storage, or own global score/progression.
 
 ## Generation and validation
 
